@@ -8,14 +8,15 @@ public class Main
 	public static String tipoProblema;
 	public static int quantidadeRestricoes;
 	public static int quantidadeVariaveisNaturais;
+	public static Float[][] tableau;
 
 	public static void main(String[] args) 
 	{
-		lerArquivo(args[0]);
+		lerEntradas(args[0]);
 
 	}
 	
-	private static void lerArquivo(String nomeArquivo)
+	private static void lerEntradas(String nomeArquivo)
 	{
 		try 
 		{
@@ -36,5 +37,10 @@ public class Main
 		{
 			e.printStackTrace();
 		}
+	}
+	
+	private static void imprimirTableau()
+	{
+		
 	}
 }
