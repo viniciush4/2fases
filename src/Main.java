@@ -1,10 +1,9 @@
-import java.io.BufferedReader;
+/*import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
-import java.io.IOException;
+import java.io.IOException;*/
 import java.util.Scanner;
 
-import com.sun.xml.internal.bind.v2.runtime.output.StAXExStreamWriterOutput;
 
 public class Main 
 {	
@@ -127,7 +126,7 @@ public class Main
 				restricoes[i] = scanner.nextLine().split(" ");
 			}
 			
-			
+			scanner.close();
 					
 			//leitorArquivo.close();
 		} 
