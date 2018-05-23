@@ -14,13 +14,15 @@ public class Main
 	public static String[][] restricoes;
 	public static Float[][] tableau;
 	public static float[] funcaoObjetivo;
-	public static int variaveisDeFolga = 0, variaveisDeExcesso = 0, vairaveisArtificiais = 0;
+	public static int variaveisDeFolga = 0, variaveisDeExcesso = 0, variaveisArtificiais = 0;
+	public static int numeroDeLinhasTableau;
+	public static int numeroDeColunasTableau;
 
 	public static void main(String[] args) 
 	{
 		lerEntradas();
 		analisaEntradas();
-
+		imprimirTableau();
 	}
 	
 	
@@ -32,42 +34,63 @@ public class Main
 				variaveisDeFolga++;
 			}else if(restricoes[i][quantidadeVariaveisNaturais].equals(">=")) {
 				variaveisDeExcesso++;
-				vairaveisArtificiais++;
+				variaveisArtificiais++;
 			}else if(restricoes[i][quantidadeVariaveisNaturais].equals("=")) {
-				vairaveisArtificiais++;
+				variaveisArtificiais++;
 			}
 		}
 		
-		int numeroDeLinhasTableau = quantidadeRestricoes+1;
-		int numeroDeColunasTableau = quantidadeVariaveisNaturais + vairaveisArtificiais + variaveisDeExcesso+variaveisDeFolga;
-		System.out.println("linhas = "+ numeroDeLinhasTableau + ", colunas = "+ numeroDeColunasTableau);
+		numeroDeLinhasTableau = quantidadeRestricoes+1;
+		
+		numeroDeColunasTableau = quantidadeVariaveisNaturais + variaveisArtificiais + variaveisDeExcesso + variaveisDeFolga + 1;
+		
 		tableau = new Float[numeroDeLinhasTableau][numeroDeColunasTableau];
 	
 		for(int i = 0; i < numeroDeColunasTableau; i++) {
-			if(i<quantidadeVariaveisNaturais)
-				tableau[0][i] = funcaoObjetivo[i];
+			tableau[0][0] = (float) 0;
+			if(i<quantidadeVariaveisNaturais && tipoProblema.equals("max"))
+				tableau[0][i+1] = funcaoObjetivo[i];
+			else if(i<quantidadeVariaveisNaturais && tipoProblema.equals("min"))
+				tableau[0][i+1] = funcaoObjetivo[i]*(-1);
 			else
 				tableau[0][i] = (float) 0;
+			tableau[0][quantidadeVariaveisNaturais] = funcaoObjetivo[quantidadeVariaveisNaturais-1];
 		}
 	
+		for(int i = 1; i < numeroDeLinhasTableau; i++)
+			tableau[i][0] = (float) 0;
+		
 		for(int i = 1; i < numeroDeLinhasTableau; i++) {
-			for(int j = 0; j < numeroDeColunasTableau; j++) {
+			for(int j = 1; j < numeroDeColunasTableau; j++) {
 				if(j < quantidadeVariaveisNaturais)
-					tableau[i][j] = Float.valueOf(restricoes[i-1][j]);
+					tableau[i][j] = Float.valueOf(restricoes[i-1][j-1]);
 				else
 					tableau[i][j] = (float) 0;
 			}	
 		}
 		
+		for(int i = 0; i < quantidadeRestricoes; i++) {
+			tableau[i+1][quantidadeVariaveisNaturais] = Float.valueOf(restricoes[i][quantidadeVariaveisNaturais-1]);
+			tableau[i+1][0] = Float.valueOf(restricoes[i][quantidadeVariaveisNaturais+1]);
+		}
+			
 		
-		for(int i = 0; i < numeroDeLinhasTableau; i++) {
-			for(int j = 0; j < numeroDeColunasTableau; j++) {
-			System.out.print(tableau[i][j]+"\t");
+		
+		int posicaoDaFolga = quantidadeVariaveisNaturais+1;
+		int posicaoDaArtificial = numeroDeColunasTableau - variaveisArtificiais;
+		
+		for(int i = 0; i < quantidadeRestricoes; i++) {
+			if(restricoes[i][quantidadeVariaveisNaturais].equals("<=")) {
+				tableau[i+1][posicaoDaFolga++] = (float) 1;
+			}else if(restricoes[i][quantidadeVariaveisNaturais].equals(">=")) {
+				tableau[i+1][posicaoDaFolga++] = (float) 1;
+				tableau[i+1][posicaoDaArtificial++] = (float) 1;
+			}else if(restricoes[i][quantidadeVariaveisNaturais].equals("=")) {
+				tableau[i+1][posicaoDaArtificial++] = (float) 1;
 			}
-			System.out.println();
 		}
 		
-	
+		
 		
 	}
 		
@@ -103,6 +126,8 @@ public class Main
 			for(int i = 0; i < quantidadeRestricoes; i++) {
 				restricoes[i] = scanner.nextLine().split(" ");
 			}
+			
+			
 					
 			//leitorArquivo.close();
 		} 
@@ -114,6 +139,11 @@ public class Main
 	
 	private static void imprimirTableau()
 	{
-		
+		for(int i = 0; i < numeroDeLinhasTableau; i++) {
+			for(int j = 0; j < numeroDeColunasTableau; j++) {
+			System.out.print(tableau[i][j]+"\t");
+			}
+			System.out.println();
+		}		
 	}
 }
