@@ -2,6 +2,8 @@
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;*/
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 
@@ -39,26 +41,100 @@ public class Main
 			}
 		}
 		
-		numeroDeLinhasTableau = quantidadeRestricoes+1;
-		
 		numeroDeColunasTableau = quantidadeVariaveisNaturais + variaveisArtificiais + variaveisDeExcesso + variaveisDeFolga + 1;
 		
-		tableau = new Float[numeroDeLinhasTableau][numeroDeColunasTableau];
-	
-		for(int i = 0; i < numeroDeColunasTableau; i++) {
-			tableau[0][0] = (float) 0;
-			if(i<quantidadeVariaveisNaturais && tipoProblema.equals("max"))
-				tableau[0][i+1] = funcaoObjetivo[i];
-			else if(i<quantidadeVariaveisNaturais && tipoProblema.equals("min"))
-				tableau[0][i+1] = funcaoObjetivo[i]*(-1);
-			else
-				tableau[0][i] = (float) 0;
-			tableau[0][quantidadeVariaveisNaturais] = funcaoObjetivo[quantidadeVariaveisNaturais-1];
+		if(variaveisArtificiais == 0) {
+			numeroDeLinhasTableau = quantidadeRestricoes+1;
+			tableauSemArtificial();
+		}else {
+			numeroDeLinhasTableau = quantidadeRestricoes+2;
+			tableauComArtificial();
 		}
-	
-		for(int i = 1; i < numeroDeLinhasTableau; i++)
-			tableau[i][0] = (float) 0;
+			
 		
+		
+		
+		
+		
+		
+	}
+		
+		
+	
+	private static void tableauComArtificial() {
+		tableau = new Float[numeroDeLinhasTableau][numeroDeColunasTableau];
+		for(int i = 0; i < numeroDeLinhasTableau; i++) {
+			for(int j = 0; j < numeroDeColunasTableau; j++) {
+				tableau[i][j] = (float) 0;
+			}
+		}
+		
+		
+		for(int i = 0; i < quantidadeVariaveisNaturais; i++) {
+			if(tipoProblema.equals("max")) {
+				tableau[1][i+1] = funcaoObjetivo[i];
+			}
+			else if(tipoProblema.equals("min")) 
+				tableau[1][i+1] = funcaoObjetivo[i]*(-1);
+		}
+		
+		
+		for(int i = 0; i < variaveisArtificiais; i ++) {
+			System.out.println(i);
+			tableau[0][quantidadeVariaveisNaturais+variaveisDeExcesso+variaveisDeFolga+1+i] = (float) -1;
+		}
+		
+		
+		for(int i = 0; i < restricoes.length; i++) {
+			for(int j = 0; j < restricoes[0].length-2; j++) {
+					tableau[i+2][j+1] = Float.valueOf(restricoes[i][j]);
+			}	
+		}
+		
+		
+		for(int i = 0; i < quantidadeRestricoes; i++) {
+			tableau[i+2][quantidadeVariaveisNaturais] = Float.valueOf(restricoes[i][quantidadeVariaveisNaturais-1]);
+			tableau[i+2][0] = Float.valueOf(restricoes[i][quantidadeVariaveisNaturais+1]);
+		}
+			
+		
+		
+		int posicaoDaFolga = quantidadeVariaveisNaturais+1;
+		int posicaoDaArtificial = numeroDeColunasTableau - variaveisArtificiais;
+		
+		for(int i = 0; i < quantidadeRestricoes; i++) {
+			if(restricoes[i][quantidadeVariaveisNaturais].equals("<=")) {
+				tableau[i+2][posicaoDaFolga++] = (float) 1;
+			}else if(restricoes[i][quantidadeVariaveisNaturais].equals(">=")) {
+				tableau[i+2][posicaoDaFolga++] = (float) 1;
+				tableau[i+2][posicaoDaArtificial++] = (float) 1;
+			}else if(restricoes[i][quantidadeVariaveisNaturais].equals("=")) {
+				tableau[i+2][posicaoDaArtificial++] = (float) 1;
+			}
+		}
+		
+	}
+
+
+
+	private static void tableauSemArtificial() {
+		tableau = new Float[numeroDeLinhasTableau][numeroDeColunasTableau];
+		for(int i = 0; i < numeroDeLinhasTableau; i++) {
+			for(int j = 0; j < numeroDeColunasTableau; j++) {
+				tableau[i][j] = (float) 0;
+			}
+		}
+		
+		
+		for(int i = 0; i < quantidadeVariaveisNaturais; i++) {
+			if(tipoProblema.equals("max")) {
+				tableau[0][i+1] = funcaoObjetivo[i];
+			}
+			else if(tipoProblema.equals("min")) 
+				tableau[0][i+1] = funcaoObjetivo[i]*(-1);
+		}
+		
+				
 		for(int i = 1; i < numeroDeLinhasTableau; i++) {
 			for(int j = 1; j < numeroDeColunasTableau; j++) {
 				if(j < quantidadeVariaveisNaturais)
@@ -90,11 +166,10 @@ public class Main
 		}
 		
 		
-		
 	}
-		
-		
-	
+
+
+
 	private static void lerEntradas()
 	{
 		try 
@@ -140,7 +215,7 @@ public class Main
 	{
 		for(int i = 0; i < numeroDeLinhasTableau; i++) {
 			for(int j = 0; j < numeroDeColunasTableau; j++) {
-			System.out.print(tableau[i][j]+"\t");
+				System.out.print(tableau[i][j]+"\t");
 			}
 			System.out.println();
 		}		
