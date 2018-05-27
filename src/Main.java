@@ -38,8 +38,8 @@ public class Main
 		
 		tipoProblema = scanner.nextLine();
 		String dimensoes[] = scanner.nextLine().split(" ");
-		quantidadeRestricoes = Integer.parseInt(dimensoes[0]);
-		quantidadeVariaveisNaturais = Integer.parseInt(dimensoes[1]);
+		int quantidadeRestricoes = Integer.parseInt(dimensoes[0]);
+		int quantidadeVariaveisNaturais = Integer.parseInt(dimensoes[1]);
 		restricoes = new String[quantidadeRestricoes][quantidadeVariaveisNaturais+2];
 		funcaoObjetivo = new float[quantidadeVariaveisNaturais];
 		
@@ -62,9 +62,6 @@ public class Main
 	 */
 	private static void imprimirEntradas()
 	{
-		int quantidadeRestricoes = restricoes.length;
-		int quantidadeVariaveisNaturais = funcaoObjetivo.length;
-		
 		System.out.println("Tipo do problema: "+tipoProblema);
 		System.out.println("Quantidade de Restrições: "+quantidadeRestricoes);
 		System.out.println("Quantidade de Variáveis Naturais: "+quantidadeVariaveisNaturais);
