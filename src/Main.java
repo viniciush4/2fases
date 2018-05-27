@@ -1,14 +1,11 @@
-/*import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;*/
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Scanner;
 
+import java.util.Scanner;
 
 public class Main 
 {	
+	/*
+	 * Dados a serem manipulados
+	 */
 	public static String tipoProblema;
 	public static int quantidadeRestricoes;
 	public static int quantidadeVariaveisNaturais;
@@ -19,6 +16,9 @@ public class Main
 	public static int numeroDeLinhasTableau;
 	public static int numeroDeColunasTableau;
 
+	/*
+	 * Função principal
+	 */
 	public static void main(String[] args) 
 	{
 		lerEntradas();
@@ -26,7 +26,12 @@ public class Main
 		analisaEntradas();
 		imprimirTableau();
 	}
-	
+
+	/*
+	 * Realiza a leitura do prblema conforme convencionado na
+	 * especificação do trabalho. Os dados são lidos da entrada
+	 * padrão.
+	 */
 	private static void lerEntradas()
 	{
 		Scanner scanner = new Scanner(System.in);
@@ -38,47 +43,52 @@ public class Main
 		restricoes = new String[quantidadeRestricoes][quantidadeVariaveisNaturais+2];
 		funcaoObjetivo = new float[quantidadeVariaveisNaturais];
 		
+		// Preenche a função objetivo
 		for(int i = 0; i < quantidadeVariaveisNaturais; i++) {
 			funcaoObjetivo[i] = scanner.nextFloat();
 		}
 		scanner.nextLine();
 		
+		// Preenche as restrições
 		for(int i = 0; i < quantidadeRestricoes; i++) {
 			restricoes[i] = scanner.nextLine().split(" ");
 		}
 		scanner.close();
 	}
 	
+	/*
+	 * Imprime na saída padrão os dados lidos: 
+	 * Tipo de problema, quantidade de restrições, quantidade de variáveis e função objetivo
+	 */
 	private static void imprimirEntradas()
 	{
-		System.err.println(tipoProblema + " \n" + quantidadeRestricoes + " " + quantidadeVariaveisNaturais);
+		int quantidadeRestricoes = restricoes.length;
+		int quantidadeVariaveisNaturais = funcaoObjetivo.length;
 		
+		System.out.println("Tipo do problema: "+tipoProblema);
+		System.out.println("Quantidade de Restrições: "+quantidadeRestricoes);
+		System.out.println("Quantidade de Variáveis Naturais: "+quantidadeVariaveisNaturais);
+		System.out.print("Função Objetivo: ");
+		
+		// Imprime a função objetivo
 		for(int i = 0; i < quantidadeVariaveisNaturais; i++) {
 			System.out.print(funcaoObjetivo[i]+"   ");
 		}
 		System.out.println();
 	}
 	
-	private static void imprimirTableau()
-	{
-		for(int i = 0; i < numeroDeLinhasTableau; i++) {
-			for(int j = 0; j < numeroDeColunasTableau; j++) {
-				System.out.print(tableau[i][j]+"\t");
-			}
-			System.out.println();
-		}		
-	}
-	
-	// A ordem no tableau vai ser: variaveis de folga, de excesso e artificiais
+	/*
+	 * Verifica a necessidade de inserção de variáveis de folga, excesso ou artificiais
+	 */
 	private static void analisaEntradas() 
 	{
 		for(int i = 0; i < quantidadeRestricoes; i++) {
 			if(restricoes[i][quantidadeVariaveisNaturais].equals("<=")) {
 				variaveisDeFolga++;
-			}else if(restricoes[i][quantidadeVariaveisNaturais].equals(">=")) {
+			} else if(restricoes[i][quantidadeVariaveisNaturais].equals(">=")) {
 				variaveisDeExcesso++;
 				variaveisArtificiais++;
-			}else if(restricoes[i][quantidadeVariaveisNaturais].equals("=")) {
+			} else if(restricoes[i][quantidadeVariaveisNaturais].equals("=")) {
 				variaveisArtificiais++;
 			}
 		}
@@ -88,20 +98,28 @@ public class Main
 		if(variaveisArtificiais == 0) {
 			numeroDeLinhasTableau = quantidadeRestricoes+1;
 			tableauSemArtificial();
-		}else {
+		} else {
 			numeroDeLinhasTableau = quantidadeRestricoes+2;
 			tableauComArtificial();
 		}	
 	}
 	
-	private static void tableauComArtificial() {
+	/*
+	 * Cria um tableau para a primeira fase
+	 */
+	private static void tableauComArtificial() 
+	{
+		// Cria o tableau
 		tableau = new Float[numeroDeLinhasTableau][numeroDeColunasTableau];
+		
+		// Preenche o tableau com zeros
 		for(int i = 0; i < numeroDeLinhasTableau; i++) {
 			for(int j = 0; j < numeroDeColunasTableau; j++) {
 				tableau[i][j] = (float) 0;
 			}
 		}
 		
+		// Insere a função objetivo no tableau
 		for(int i = 0; i < quantidadeVariaveisNaturais; i++) {
 			if(tipoProblema.equals("max")) {
 				tableau[1][i+1] = funcaoObjetivo[i];
@@ -110,16 +128,19 @@ public class Main
 				tableau[1][i+1] = funcaoObjetivo[i]*(-1);
 		}
 		
-		for(int i = 0; i < variaveisArtificiais; i ++) {
+		// Coloca -1 nas variáveis artificiais da função artificial
+		for(int i = 0; i < variaveisArtificiais; i++) {
 			System.out.println(i);
 			tableau[0][quantidadeVariaveisNaturais+variaveisDeExcesso+variaveisDeFolga+1+i] = (float) -1;
 		}
 		
+		// Insere as restrições no tableau
 		for(int i = 0; i < restricoes.length; i++) {
 			for(int j = 0; j < restricoes[0].length-2; j++) {
 					tableau[i+2][j+1] = Float.valueOf(restricoes[i][j]);
 			}	
 		}
+		
 		
 		for(int i = 0; i < quantidadeRestricoes; i++) {
 			tableau[i+2][quantidadeVariaveisNaturais] = Float.valueOf(restricoes[i][quantidadeVariaveisNaturais-1]);
@@ -141,14 +162,22 @@ public class Main
 		}
 	}
 
-	private static void tableauSemArtificial() {
+	/*
+	 * Cria um tableau para a segunda fase
+	 */
+	private static void tableauSemArtificial() 
+	{
+		// Cria o tableau
 		tableau = new Float[numeroDeLinhasTableau][numeroDeColunasTableau];
+		
+		// Preenche o tableau com zeros
 		for(int i = 0; i < numeroDeLinhasTableau; i++) {
 			for(int j = 0; j < numeroDeColunasTableau; j++) {
 				tableau[i][j] = (float) 0;
 			}
 		}
 		
+		// Insere a função objetivo no tableau
 		for(int i = 0; i < quantidadeVariaveisNaturais; i++) {
 			if(tipoProblema.equals("max")) {
 				tableau[0][i+1] = funcaoObjetivo[i];
@@ -157,6 +186,7 @@ public class Main
 				tableau[0][i+1] = funcaoObjetivo[i]*(-1);
 		}
 				
+		
 		for(int i = 1; i < numeroDeLinhasTableau; i++) {
 			for(int j = 1; j < numeroDeColunasTableau; j++) {
 				if(j < quantidadeVariaveisNaturais)
@@ -184,5 +214,20 @@ public class Main
 				tableau[i+1][posicaoDaArtificial++] = (float) 1;
 			}
 		}
-	}	
+	}
+	
+	private static void imprimirTableau()
+	{
+		for(int i = 0; i < numeroDeLinhasTableau; i++) {
+			for(int j = 0; j < numeroDeColunasTableau; j++) {
+				System.out.print(tableau[i][j]+"\t");
+			}
+			System.out.println();
+		}		
+	}
+	
+	private static void primeiraFase()
+	{
+		
+	}
 }
