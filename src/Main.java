@@ -69,7 +69,7 @@ public class Main
 		}		
 	}
 	
-	// A ordem no tableau vai ser variaveis de folga, de excesso e artificiais
+	// A ordem no tableau vai ser: variaveis de folga, de excesso e artificiais
 	private static void analisaEntradas() 
 	{
 		for(int i = 0; i < quantidadeRestricoes; i++) {
