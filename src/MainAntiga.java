@@ -225,27 +225,4 @@ public class MainAntiga
 			System.out.println();
 		}		
 	}
-	
-	private static void primeiraFase()
-	{
-		int indiceColunaPivo = encontrarIndiceColunaPivo();
-		int indiceLinhaPivo = 0;
-		
-	}
-	
-	private static int encontrarIndiceColunaPivo()
-	{
-		float max = 0;
-		int indice = -1;
-		
-		for(int i=0; i<numeroDeColunasTableau;i++) {
-			if(tableau[0][i] > max) {
-				max = tableau[0][i];
-				indice = i;
-			}
-		}
-		return indice;
-	}
-	
-	
 }

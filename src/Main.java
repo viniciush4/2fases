@@ -25,6 +25,9 @@ public class Main
 	{
 		lerEntradas();
 		analisaEntradas();
+		primeiraFase();
+		imprimirTableau();
+		segundaFase();
 		imprimirTableau();
 	}
 	
@@ -110,8 +113,91 @@ public class Main
 			}
 		}
 		
-		primeiraFase();
+	}
+	
+	/*
+	 * Encontra o valor máximo da primeira linha do tableau
+	 */
+	private static int encontrarIndiceColunaPivo()
+	{
+		double max = 0;
+		int indice = -1;
 		
+		// Itera sobre a primeira linha, a partir da segunda coluna
+		for(int i = 1; i < numeroDeColunasTableau; i++)
+		{
+			// Se o valor é maior que o máximo já encontrado
+			if (tableauSegundaFase[0][i] > max)
+			{
+				// Atualiza máximo e indice
+				max = tableauSegundaFase[0][i];
+				indice = i;
+			}
+		}
+		return indice;
+	}
+	
+	/*
+	 * Encontra o mínimo da divisão entre o item coluna de 
+	 * resultados pelo item referente na coluna pivô
+	 */
+	private static int encontrarIndiceLinhaPivo(int indexColPivot)
+	{
+		float min = Float.MAX_VALUE;
+		int index = -1;
+		if(indexColPivot == -1){ return -1;}
+		for(int i = 1; i < numeroDeLinhasTableau; i++)
+		{
+			if(tableauSegundaFase[i][indexColPivot] > 0 && tableauSegundaFase[i][numeroDeColunasTableau-1] >= 0 && tableauSegundaFase[i][numeroDeColunasTableau-1]/tableauSegundaFase[i][indexColPivot] < min)
+			{
+				min = tableauSegundaFase[i][numeroDeColunasTableau-1]/tableauSegundaFase[i][indexColPivot];
+				index = i;
+			}
+		}
+		return index;
+	}
+	
+	/*
+	 * Escalona o tableau
+	 */
+	private static void escalonarTableau(int indiceColunaPivo, int indiceLinhaPivo)
+	{	
+		for(int i=0; i<numeroDeLinhasTableau; i++)
+		{
+			if(i==indiceLinhaPivo){continue;}
+			float divisor = tableauSegundaFase[i][indiceColunaPivo];
+			for(int j=0; j<numeroDeColunasTableau; j++)
+			{
+				tableauSegundaFase[i][j] = (float) ((-1)*divisor*tableauSegundaFase[indiceLinhaPivo][j] + tableauSegundaFase[i][j]);  
+			}
+		}
+	}
+	
+	/*
+	 * Realiza a segunda fase do algoritmo
+	 */
+	private static void segundaFase() 
+	{
+		int indiceColunaPivo = encontrarIndiceColunaPivo();
+		int indiceLinhaPivo = encontrarIndiceLinhaPivo(indiceColunaPivo);
+		
+		System.out.printf("Indice Col: %d\n",indiceColunaPivo);
+		System.out.printf("Indice Lin: %d\n",indiceLinhaPivo);
+		
+		while(indiceColunaPivo != -1)
+		{
+			if(indiceLinhaPivo != -1)
+			{
+				escalonarTableau(indiceColunaPivo, indiceLinhaPivo);
+
+				indiceColunaPivo = encontrarIndiceColunaPivo();
+				indiceLinhaPivo = encontrarIndiceLinhaPivo(indiceColunaPivo);
+			}
+			else
+			{
+				break;
+			}
+		}
 	}
 
 
@@ -252,7 +338,6 @@ public class Main
 			}
 		}
 		
-		
 	}
 
 
@@ -300,6 +385,7 @@ public class Main
 	
 	private static void imprimirTableau()
 	{
+		System.out.println();
 		for(int i = 0; i < numeroDeLinhasTableau; i++) {
 			for(int j = 0; j < numeroDeColunasTableau; j++) {
 				System.out.print(tableauSegundaFase[i][j]+"\t");
