@@ -1,7 +1,3 @@
-/*import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;*/
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -9,6 +5,9 @@ import java.util.Scanner;
 
 public class Main 
 {	
+	/*
+	 * Dados a serem manipulados
+	 */
 	public static String tipoProblema;
 	public static int quantidadeRestricoes;
 	public static int quantidadeVariaveisNaturais;
@@ -21,9 +20,13 @@ public class Main
 	public static int numeroDeColunasTableau;
 	public static List<Integer> posicaoDaArtificial = new ArrayList<>();
 
+	/*
+	 * Função principal
+	 */
 	public static void main(String[] args) 
 	{
 		lerEntradas();
+		imprimirEntradas();
 		analisaEntradas();
 		primeiraFase();
 		imprimirTableau();
@@ -31,10 +34,59 @@ public class Main
 		imprimirTableau();
 	}
 	
+	/*
+	 * Realiza a leitura do prblema conforme convencionado na
+	 * especificação do trabalho. Os dados são lidos da entrada
+	 * padrão.
+	 */
+	private static void lerEntradas()
+	{
+		Scanner scanner = new Scanner(System.in);
+		
+		tipoProblema = scanner.nextLine();
+		String dimensoes[] = scanner.nextLine().split(" ");
+		quantidadeRestricoes = Integer.parseInt(dimensoes[0]);
+		quantidadeVariaveisNaturais = Integer.parseInt(dimensoes[1]);
+		restricoes = new String[quantidadeRestricoes][quantidadeVariaveisNaturais+2];
+		funcaoObjetivo = new float[quantidadeVariaveisNaturais];
+		
+		// Preenche a função objetivo
+		for(int i = 0; i < quantidadeVariaveisNaturais; i++) {
+			funcaoObjetivo[i] = scanner.nextFloat();
+		}
+		scanner.nextLine();
+		
+		// Preenche as restrições
+		for(int i = 0; i < quantidadeRestricoes; i++) {
+			restricoes[i] = scanner.nextLine().split(" ");
+		}
+		scanner.close();
+	}
 	
+	/*
+	 * Imprime na saída padrão os dados lidos: 
+	 * Tipo de problema, quantidade de restrições, quantidade de variáveis e função objetivo
+	 */
+	private static void imprimirEntradas()
+	{
+		System.out.println("Tipo do problema: "+tipoProblema);
+		System.out.println("Quantidade de Restrições: "+quantidadeRestricoes);
+		System.out.println("Quantidade de Variáveis Naturais: "+quantidadeVariaveisNaturais);
+		System.out.print("Função Objetivo: ");
+		
+		// Imprime a função objetivo
+		for(int i = 0; i < quantidadeVariaveisNaturais; i++) {
+			System.out.print(funcaoObjetivo[i]+"   ");
+		}
+		System.out.println();
+	}
 	
-	//A ordem no tableau vai ser variaveis de folga, de excesso e artificiais
-	private static void analisaEntradas() {
+	/*
+	 * Verifica a necessidade de inserção de variáveis de folga, excesso ou artificiais.
+	 */
+	private static void analisaEntradas() 
+	{
+		// Conta quantas variáveis de cada tipo serão necessárias
 		for(int i = 0; i < quantidadeRestricoes; i++) {
 			if(restricoes[i][quantidadeVariaveisNaturais].equals("<=")) {
 				variaveisDeFolga++;
@@ -57,20 +109,24 @@ public class Main
 			numeroDeLinhasTableau = quantidadeRestricoes+2;
 			tableauComArtificial();
 		}
-		
 	}
 		
-		
-	
-	private static void tableauComArtificial() {
+	/*
+	 * Cria um tableau para a primeira fase
+	 */
+	private static void tableauComArtificial() 
+	{
+		// Cria o tableau
 		tableauPrimeiraFase = new Float[numeroDeLinhasTableau][numeroDeColunasTableau];
+		
+		// Preenche o tableau com zeros
 		for(int i = 0; i < numeroDeLinhasTableau; i++) {
 			for(int j = 0; j < numeroDeColunasTableau; j++) {
 				tableauPrimeiraFase[i][j] = (float) 0;
 			}
 		}
 		
-		
+		// Insere a função objetivo no tableau
 		for(int i = 0; i < quantidadeVariaveisNaturais; i++) {
 			if(tipoProblema.equals("max")) {
 				tableauPrimeiraFase[1][i+1] = funcaoObjetivo[i];
@@ -79,11 +135,10 @@ public class Main
 				tableauPrimeiraFase[1][i+1] = funcaoObjetivo[i]*(-1);
 		}
 		
-		
+		// Coloca -1 nas variáveis artificiais da função artificial
 		for(int i = 0; i < variaveisArtificiais; i ++) {
 			tableauPrimeiraFase[0][quantidadeVariaveisNaturais+variaveisDeExcesso+variaveisDeFolga+1+i] = (float) -1;
 		}
-		
 		
 		for(int i = 0; i < restricoes.length; i++) {
 			for(int j = 0; j < restricoes[0].length-2; j++) {
@@ -91,13 +146,10 @@ public class Main
 			}	
 		}
 		
-		
 		for(int i = 0; i < quantidadeRestricoes; i++) {
 			tableauPrimeiraFase[i+2][quantidadeVariaveisNaturais] = Float.valueOf(restricoes[i][quantidadeVariaveisNaturais-1]);
 			tableauPrimeiraFase[i+2][0] = Float.valueOf(restricoes[i][quantidadeVariaveisNaturais+1]);
 		}
-			
-		
 		
 		int posicaoDaFolga = quantidadeVariaveisNaturais+1;
 		int posicaoDaArtificial = numeroDeColunasTableau - variaveisArtificiais;
@@ -112,96 +164,65 @@ public class Main
 				tableauPrimeiraFase[i+2][posicaoDaArtificial++] = (float) 1;
 			}
 		}
-		
 	}
 	
 	/*
-	 * Encontra o valor máximo da primeira linha do tableau
+	 * Cria um tableau para a segunda fase
 	 */
-	private static int encontrarIndiceColunaPivo()
+	private static void tableauSemArtificial() 
 	{
-		double max = 0;
-		int indice = -1;
+		// Cria o tableau
+		tableauSegundaFase = new Float[numeroDeLinhasTableau][numeroDeColunasTableau];
 		
-		// Itera sobre a primeira linha, a partir da segunda coluna
-		for(int i = 1; i < numeroDeColunasTableau; i++)
-		{
-			// Se o valor é maior que o máximo já encontrado
-			if (tableauSegundaFase[0][i] > max)
-			{
-				// Atualiza máximo e indice
-				max = tableauSegundaFase[0][i];
-				indice = i;
+		// Preenche o tableau com zeros
+		for(int i = 0; i < numeroDeLinhasTableau; i++) {
+			for(int j = 0; j < numeroDeColunasTableau; j++) {
+				tableauSegundaFase[i][j] = (float) 0;
 			}
 		}
-		return indice;
-	}
-	
-	/*
-	 * Encontra o mínimo da divisão entre o item coluna de 
-	 * resultados pelo item referente na coluna pivô
-	 */
-	private static int encontrarIndiceLinhaPivo(int indexColPivot)
-	{
-		float min = Float.MAX_VALUE;
-		int index = -1;
-		if(indexColPivot == -1){ return -1;}
-		for(int i = 1; i < numeroDeLinhasTableau; i++)
-		{
-			if(tableauSegundaFase[i][indexColPivot] > 0 && tableauSegundaFase[i][numeroDeColunasTableau-1] >= 0 && tableauSegundaFase[i][numeroDeColunasTableau-1]/tableauSegundaFase[i][indexColPivot] < min)
-			{
-				min = tableauSegundaFase[i][numeroDeColunasTableau-1]/tableauSegundaFase[i][indexColPivot];
-				index = i;
+		
+		// Insere a função objetivo no tableau
+		for(int i = 0; i < quantidadeVariaveisNaturais; i++) {
+			if(tipoProblema.equals("max")) {
+				tableauSegundaFase[0][i+1] = funcaoObjetivo[i];
 			}
+			else if(tipoProblema.equals("min")) 
+				tableauSegundaFase[0][i+1] = funcaoObjetivo[i]*(-1);
 		}
-		return index;
-	}
-	
-	/*
-	 * Escalona o tableau
-	 */
-	private static void escalonarTableau(int indiceColunaPivo, int indiceLinhaPivo)
-	{	
-		for(int i=0; i<numeroDeLinhasTableau; i++)
-		{
-			if(i==indiceLinhaPivo){continue;}
-			float divisor = tableauSegundaFase[i][indiceColunaPivo];
-			for(int j=0; j<numeroDeColunasTableau; j++)
-			{
-				tableauSegundaFase[i][j] = (float) ((-1)*divisor*tableauSegundaFase[indiceLinhaPivo][j] + tableauSegundaFase[i][j]);  
+				
+		// Insere as restrições no tableau
+		for(int i = 1; i < numeroDeLinhasTableau; i++) {
+			for(int j = 1; j < numeroDeColunasTableau; j++) {
+				if(j < quantidadeVariaveisNaturais)
+					tableauSegundaFase[i][j] = Float.valueOf(restricoes[i-1][j-1]);
+				else
+					tableauSegundaFase[i][j] = (float) 0;
+			}	
+		}
+		
+		for(int i = 0; i < quantidadeRestricoes; i++) {
+			tableauSegundaFase[i+1][quantidadeVariaveisNaturais] = Float.valueOf(restricoes[i][quantidadeVariaveisNaturais-1]);
+			tableauSegundaFase[i+1][0] = Float.valueOf(restricoes[i][quantidadeVariaveisNaturais+1]);
+		}
+		
+		int posicaoDaFolga = quantidadeVariaveisNaturais+1;
+		int posicaoDaArtificial = numeroDeColunasTableau - variaveisArtificiais;
+		
+		for(int i = 0; i < quantidadeRestricoes; i++) {
+			if(restricoes[i][quantidadeVariaveisNaturais].equals("<=")) {
+				tableauSegundaFase[i+1][posicaoDaFolga++] = (float) 1;
+			}else if(restricoes[i][quantidadeVariaveisNaturais].equals(">=")) {
+				tableauSegundaFase[i+1][posicaoDaFolga++] = (float) 1;
+				tableauSegundaFase[i+1][posicaoDaArtificial++] = (float) 1;
+			}else if(restricoes[i][quantidadeVariaveisNaturais].equals("=")) {
+				tableauSegundaFase[i+1][posicaoDaArtificial++] = (float) 1;
 			}
 		}
 	}
 	
 	/*
-	 * Realiza a segunda fase do algoritmo
+	 * Executa a primeira fase do algoritmo
 	 */
-	private static void segundaFase() 
-	{
-		int indiceColunaPivo = encontrarIndiceColunaPivo();
-		int indiceLinhaPivo = encontrarIndiceLinhaPivo(indiceColunaPivo);
-		
-		System.out.printf("Indice Col: %d\n",indiceColunaPivo);
-		System.out.printf("Indice Lin: %d\n",indiceLinhaPivo);
-		
-		while(indiceColunaPivo != -1)
-		{
-			if(indiceLinhaPivo != -1)
-			{
-				escalonarTableau(indiceColunaPivo, indiceLinhaPivo);
-
-				indiceColunaPivo = encontrarIndiceColunaPivo();
-				indiceLinhaPivo = encontrarIndiceLinhaPivo(indiceColunaPivo);
-			}
-			else
-			{
-				break;
-			}
-		}
-	}
-
-
-	
 	private static void primeiraFase() {
 		for(int i = 0; i < posicaoDaArtificial.size(); i++) {
 			for(int j = 0; j < numeroDeColunasTableau; j++) {
@@ -284,105 +305,117 @@ public class Main
 			numeroDeLinhasTableau = numeroDeLinhasTableau-1;
 			numeroDeColunasTableau = numeroDeColunasTableau-variaveisArtificiais;
 		}
-		
-	}		
+	}	
 	
-
-
-
-	private static void tableauSemArtificial() {
-		tableauSegundaFase = new Float[numeroDeLinhasTableau][numeroDeColunasTableau];
-		for(int i = 0; i < numeroDeLinhasTableau; i++) {
-			for(int j = 0; j < numeroDeColunasTableau; j++) {
-				tableauSegundaFase[i][j] = (float) 0;
-			}
-		}
-		
-		
-		for(int i = 0; i < quantidadeVariaveisNaturais; i++) {
-			if(tipoProblema.equals("max")) {
-				tableauSegundaFase[0][i+1] = funcaoObjetivo[i];
-			}
-			else if(tipoProblema.equals("min")) 
-				tableauSegundaFase[0][i+1] = funcaoObjetivo[i]*(-1);
-		}
-		
-				
-		for(int i = 1; i < numeroDeLinhasTableau; i++) {
-			for(int j = 1; j < numeroDeColunasTableau; j++) {
-				if(j < quantidadeVariaveisNaturais)
-					tableauSegundaFase[i][j] = Float.valueOf(restricoes[i-1][j-1]);
-				else
-					tableauSegundaFase[i][j] = (float) 0;
-			}	
-		}
-		
-		for(int i = 0; i < quantidadeRestricoes; i++) {
-			tableauSegundaFase[i+1][quantidadeVariaveisNaturais] = Float.valueOf(restricoes[i][quantidadeVariaveisNaturais-1]);
-			tableauSegundaFase[i+1][0] = Float.valueOf(restricoes[i][quantidadeVariaveisNaturais+1]);
-		}
-			
-		
-		
-		int posicaoDaFolga = quantidadeVariaveisNaturais+1;
-		int posicaoDaArtificial = numeroDeColunasTableau - variaveisArtificiais;
-		
-		for(int i = 0; i < quantidadeRestricoes; i++) {
-			if(restricoes[i][quantidadeVariaveisNaturais].equals("<=")) {
-				tableauSegundaFase[i+1][posicaoDaFolga++] = (float) 1;
-			}else if(restricoes[i][quantidadeVariaveisNaturais].equals(">=")) {
-				tableauSegundaFase[i+1][posicaoDaFolga++] = (float) 1;
-				tableauSegundaFase[i+1][posicaoDaArtificial++] = (float) 1;
-			}else if(restricoes[i][quantidadeVariaveisNaturais].equals("=")) {
-				tableauSegundaFase[i+1][posicaoDaArtificial++] = (float) 1;
-			}
-		}
-		
-	}
-
-
-
-	private static void lerEntradas()
+	/*
+	 * Realiza a segunda fase do algoritmo
+	 */
+	private static void segundaFase() 
 	{
-		try 
+		// Encontra os indices referentes ao pivo
+		int indiceColunaPivo = encontrarIndiceColunaPivo();
+		int indiceLinhaPivo = encontrarIndiceLinhaPivo(indiceColunaPivo);
+		
+		// Imprime a linha e coluna do pivo
+		System.out.printf("Indice Col: %d\n",indiceColunaPivo);
+		System.out.printf("Indice Lin: %d\n",indiceLinhaPivo);
+		
+		// Enquanto existir uma coluna pivo
+		while(indiceColunaPivo != -1)
 		{
-			//File arquivo = new File(nomeArquivo);
-			//FileReader leitorArquivo = new FileReader(arquivo);
-			//BufferedReader bufferLeitor = new BufferedReader(leitorArquivo);
-			Scanner scanner = new Scanner(System.in);
-			
-			tipoProblema = scanner.nextLine();//bufferLeitor.readLine();
-			String dimensoes[] = scanner.nextLine().split(" ");//bufferLeitor.readLine().split(" ");
-			quantidadeRestricoes = Integer.parseInt(dimensoes[0]);
-			quantidadeVariaveisNaturais = Integer.parseInt(dimensoes[1]);
-			restricoes = new String[quantidadeRestricoes][quantidadeVariaveisNaturais+2];
-			funcaoObjetivo = new float[quantidadeVariaveisNaturais];
-			
-			System.err.println(tipoProblema + " \n" + quantidadeRestricoes + " " + quantidadeVariaveisNaturais);
-			
-			for(int i = 0; i < quantidadeVariaveisNaturais; i++) {
-				funcaoObjetivo[i] = scanner.nextFloat();
-				System.out.print(funcaoObjetivo[i]+"   ");
+			// Se existir uma linha pivo
+			if(indiceLinhaPivo != -1)
+			{
+				// Escalona o tableau
+				escalonarTableau(indiceColunaPivo, indiceLinhaPivo);
+
+				// Atualiza indices referentes ao pivo
+				indiceColunaPivo = encontrarIndiceColunaPivo();
+				indiceLinhaPivo = encontrarIndiceLinhaPivo(indiceColunaPivo);
 			}
-			System.out.println();
-			
-			//Scanner aleatório porque ele ta pegando uma linha vazia sabe-se la de onde
-			scanner.nextLine();
-			
-			for(int i = 0; i < quantidadeRestricoes; i++) {
-				restricoes[i] = scanner.nextLine().split(" ");
+			else
+			{
+				break;
 			}
-			
-			scanner.close();
-					
-			//leitorArquivo.close();
-		} 
-		catch(/*IO*/Exception e)
-		{
-			e.printStackTrace();
 		}
 	}
 	
+	/*
+	 * Encontra o valor máximo da primeira linha do tableau
+	 */
+	private static int encontrarIndiceColunaPivo()
+	{
+		double max = 0;
+		int indice = -1;
+		
+		// Itera sobre a primeira linha, a partir da segunda coluna
+		for(int i = 1; i < numeroDeColunasTableau; i++)
+		{
+			// Se o valor é maior que o máximo já encontrado
+			if (tableauSegundaFase[0][i] > max)
+			{
+				// Atualiza máximo e indice
+				max = tableauSegundaFase[0][i];
+				indice = i;
+			}
+		}
+		return indice;
+	}
+	
+	/*
+	 * Encontra o mínimo da divisão entre o item coluna de 
+	 * resultados pelo item referente na coluna pivô
+	 */
+	private static int encontrarIndiceLinhaPivo(int indiceColunaPivo)
+	{
+		float min = Float.MAX_VALUE;
+		int indice = -1;
+		
+		// Se não existe coluna pivo
+		if(indiceColunaPivo == -1){ return -1;}
+		
+		// Percorre as linhas do tableau (menos a fo)
+		for(int i = 1; i < numeroDeLinhasTableau; i++)
+		{
+			 
+			if (
+				// Se o elemento da linha e coluna pivo for maior que zero e
+				tableauSegundaFase[i][indiceColunaPivo] > 0 && 
+				
+				// o elemento referente na coluna de resultdos for maior ou igual a zero e
+				tableauSegundaFase[i][0] >= 0 && 
+				
+				// a divisão entre eles for menor que o mínimo já encontrado
+				tableauSegundaFase[i][0]/tableauSegundaFase[i][indiceColunaPivo] < min
+			)
+			{
+				// Atualiza o mínimo e o indice
+				min = tableauSegundaFase[i][numeroDeColunasTableau-1]/tableauSegundaFase[i][indiceColunaPivo];
+				indice = i;
+			}
+		}
+		return indice;
+	}
+	
+	/*
+	 * Escalona o tableau
+	 */
+	private static void escalonarTableau(int indiceColunaPivo, int indiceLinhaPivo)
+	{
+		for(int i=0; i<numeroDeLinhasTableau; i++)
+		{
+			if(i==indiceLinhaPivo){continue;}
+			float divisor = tableauSegundaFase[i][indiceColunaPivo];
+			for(int j=0; j<numeroDeColunasTableau; j++)
+			{
+				tableauSegundaFase[i][j] = (float) ((-1)*divisor*tableauSegundaFase[indiceLinhaPivo][j] + tableauSegundaFase[i][j]);  
+			}
+		}
+	}
+	
+	/*
+	 * Imprime o tableau na saída padrão
+	 */
 	private static void imprimirTableau()
 	{
 		System.out.println();
