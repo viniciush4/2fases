@@ -4,7 +4,15 @@ import java.util.Scanner;
 
 
 public class Main 
-{	
+{
+	/*
+	 * Constantes
+	 */
+	static final int RESULTADO_SOLUCAO_UNICA = 0;
+	static final int RESULTADO_SOLUCAO_MULTIPLA = 1;
+	static final int RESULTADO_SEM_SOLUCAO_CONJUNTO_VAZIO = 2;
+	static final int RESULTADO_SEM_SOLUCAO_VAI_PARA_INFINITO = 3;
+	
 	/*
 	 * Dados a serem manipulados
 	 */
@@ -19,6 +27,8 @@ public class Main
 	public static int numeroDeLinhasTableau;
 	public static int numeroDeColunasTableau;
 	public static List<Integer> posicaoDaArtificial = new ArrayList<>();
+	public static int resultadoFinal = RESULTADO_SOLUCAO_UNICA;
+	public static boolean solucaoDegenerada;
 
 	/*
 	 * Função principal
@@ -29,9 +39,8 @@ public class Main
 		imprimirEntradas();
 		analisaEntradas();
 		primeiraFase();
-		imprimirTableau();
-		segundaFase();
-		imprimirTableau();
+		if(resultadoFinal != RESULTADO_SEM_SOLUCAO_CONJUNTO_VAZIO) {segundaFase();}
+		imprimirResultadoFinal();
 	}
 	
 	/*
@@ -234,7 +243,7 @@ public class Main
 		
 		while(!funcaoArtificialNula && numeroMaximoDeIteracoes != 0) {
 			float maximo = 0;
-			float minimo = 99999;
+			float minimo = Float.MAX_VALUE;
 			int posicaoDoMaximo = 0;
 			int posicaoDoMinimo = 0;
 			for(int i = 1; i < numeroDeColunasTableau; i++) {
@@ -294,7 +303,7 @@ public class Main
 		tableauSegundaFase = new Float[numeroDeLinhasTableau-1][numeroDeColunasTableau-variaveisArtificiais];
 		
 		if(numeroMaximoDeIteracoes == 0) {
-			System.err.println("O Tableau não Possui nenhuma solução viavel!");
+			resultadoFinal = RESULTADO_SEM_SOLUCAO_CONJUNTO_VAZIO;
 		}else {
 			for(int i = 0; i < numeroDeLinhasTableau-1; i++) {
 				for(int j = 0; j < numeroDeColunasTableau-variaveisArtificiais; j++) {
@@ -335,8 +344,11 @@ public class Main
 			}
 			else
 			{
-				break;
+				resultadoFinal = RESULTADO_SEM_SOLUCAO_VAI_PARA_INFINITO;
+				return;
 			}
+			
+			imprimirTableau();
 		}
 	}
 	
@@ -425,5 +437,18 @@ public class Main
 			}
 			System.out.println();
 		}		
+	}
+	
+	/*
+	 * Apresenta o resultado final na saída padrão
+	 */
+	private static void imprimirResultadoFinal()
+	{
+		switch(resultadoFinal) {
+			case RESULTADO_SOLUCAO_UNICA : System.out.println("Solução única"); break;
+			case RESULTADO_SOLUCAO_MULTIPLA : System.out.println("Multiplas soluções"); break;
+			case RESULTADO_SEM_SOLUCAO_CONJUNTO_VAZIO : System.out.println("O tableau não possui nenhuma solução viavel"); break;
+			case RESULTADO_SEM_SOLUCAO_VAI_PARA_INFINITO : System.out.println("Sem solução (z = -inf)"); break;
+		}
 	}
 }
