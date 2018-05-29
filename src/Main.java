@@ -357,7 +357,7 @@ public class Main
 	 */
 	private static int encontrarIndiceColunaPivo()
 	{
-		double max = 0;
+		float max = 0;
 		int indice = -1;
 		
 		// Itera sobre a primeira linha, a partir da segunda coluna
@@ -386,10 +386,9 @@ public class Main
 		// Se não existe coluna pivo
 		if(indiceColunaPivo == -1){ return -1;}
 		
-		// Percorre as linhas do tableau (menos a fo)
+		// Percorre as linhas do tableau (menos a função objetivo)
 		for(int i = 1; i < numeroDeLinhasTableau; i++)
 		{
-			 
 			if (
 				// Se o elemento da linha e coluna pivo for maior que zero e
 				tableauSegundaFase[i][indiceColunaPivo] > 0 && 
