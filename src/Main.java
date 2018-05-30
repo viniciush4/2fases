@@ -23,7 +23,9 @@ public class Main
 	public static Float[][] tableauPrimeiraFase;
 	public static Float[][] tableauSegundaFase;
 	public static float[] funcaoObjetivo;
-	public static int variaveisDeFolga = 0, variaveisDeExcesso = 0, variaveisArtificiais = 0;
+	public static int variaveisDeFolga = 0;
+	public static int variaveisDeExcesso = 0;
+	public static int variaveisArtificiais = 0;
 	public static int numeroDeLinhasTableau;
 	public static int numeroDeColunasTableau;
 	public static List<Integer> posicaoDaArtificial = new ArrayList<>();
@@ -53,9 +55,8 @@ public class Main
 		Scanner scanner = new Scanner(System.in);
 		
 		tipoProblema = scanner.nextLine();
-		String dimensoes[] = scanner.nextLine().split(" ");
-		quantidadeRestricoes = Integer.parseInt(dimensoes[0]);
-		quantidadeVariaveisNaturais = Integer.parseInt(dimensoes[1]);
+		quantidadeRestricoes = scanner.nextInt();
+		quantidadeVariaveisNaturais = scanner.nextInt();
 		restricoes = new String[quantidadeRestricoes][quantidadeVariaveisNaturais+2];
 		funcaoObjetivo = new float[quantidadeVariaveisNaturais];
 		
@@ -344,12 +345,23 @@ public class Main
 			}
 			else
 			{
+				
 				resultadoFinal = RESULTADO_SEM_SOLUCAO_VAI_PARA_INFINITO;
 				return;
 			}
 			
 			imprimirTableau();
 		}
+	}
+	
+	/*
+	 * Percorre a função objetivo (primeira linha do tableau) verificando
+	 * se o valor de cada elemento é igual a zero. Se alguma variavel que
+	 * não está na base possui valor zero, o problema admite infinitas soluções.
+	 */
+	private static boolean verificarSePossuiMultiplasSolucoes()
+	{
+		return true;
 	}
 	
 	/*
