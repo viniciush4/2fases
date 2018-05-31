@@ -40,8 +40,6 @@ public class Main
 		lerEntradas();
 		imprimirEntradas();
 		analisaEntradas();
-		primeiraFase();
-		if(resultadoFinal != RESULTADO_SEM_SOLUCAO_CONJUNTO_VAZIO) {segundaFase();}
 		imprimirResultadoFinal();
 	}
 	
@@ -168,12 +166,13 @@ public class Main
 			if(restricoes[i][quantidadeVariaveisNaturais].equals("<=")) {
 				tableauPrimeiraFase[i+2][posicaoDaFolga++] = (float) 1;
 			}else if(restricoes[i][quantidadeVariaveisNaturais].equals(">=")) {
-				tableauPrimeiraFase[i+2][posicaoDaFolga++] = (float) 1;
+				tableauPrimeiraFase[i+2][posicaoDaFolga++] = (float) -1;
 				tableauPrimeiraFase[i+2][posicaoDaArtificial++] = (float) 1;
 			}else if(restricoes[i][quantidadeVariaveisNaturais].equals("=")) {
 				tableauPrimeiraFase[i+2][posicaoDaArtificial++] = (float) 1;
 			}
 		}
+		primeiraFase();
 	}
 	
 	/*
@@ -228,6 +227,7 @@ public class Main
 				tableauSegundaFase[i+1][posicaoDaArtificial++] = (float) 1;
 			}
 		}
+		segundaFase();
 	}
 	
 	/*
@@ -314,6 +314,7 @@ public class Main
 			
 			numeroDeLinhasTableau = numeroDeLinhasTableau-1;
 			numeroDeColunasTableau = numeroDeColunasTableau-variaveisArtificiais;
+			segundaFase();
 		}
 	}	
 	
