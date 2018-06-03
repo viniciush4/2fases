@@ -108,12 +108,16 @@ public class Main
 			}
 		}
 		
+		//numero de colunas que o tableau precisará
 		numeroDeColunasTableau = quantidadeVariaveisNaturais + variaveisArtificiais + variaveisDeExcesso + variaveisDeFolga + 1;
 		
+		//verificação se haverá primeira fase ou não
 		if(variaveisArtificiais == 0) {
+			//numero de linhas do tableau sem variaveis artificiais
 			numeroDeLinhasTableau = quantidadeRestricoes+1;
 			tableauSemArtificial();
 		}else {
+			//numero de linhas do tableau sem variaveis artificiais
 			numeroDeLinhasTableau = quantidadeRestricoes+2;
 			tableauComArtificial();
 		}
@@ -148,20 +152,25 @@ public class Main
 			tableauPrimeiraFase[0][quantidadeVariaveisNaturais+variaveisDeExcesso+variaveisDeFolga+1+i] = (float) -1;
 		}
 		
+		//preenche o tableau com as restrições
 		for(int i = 0; i < restricoes.length; i++) {
 			for(int j = 0; j < restricoes[0].length-2; j++) {
 					tableauPrimeiraFase[i+2][j+1] = Float.valueOf(restricoes[i][j]);
 			}	
 		}
 		
+		//preenche o tableau com os valores que estão na coluna da ultima variavel natural(não me pergunte o porquê)
+		//preenche o tableau com os valores das variaveis da base na primeira coluna
 		for(int i = 0; i < quantidadeRestricoes; i++) {
 			tableauPrimeiraFase[i+2][quantidadeVariaveisNaturais] = Float.valueOf(restricoes[i][quantidadeVariaveisNaturais-1]);
 			tableauPrimeiraFase[i+2][0] = Float.valueOf(restricoes[i][quantidadeVariaveisNaturais+1]);
 		}
 		
+		//variaveis criadas para auxiliar a colocar os valores das variaveis de folga e artificiais no tableau
 		int posicaoDaFolga = quantidadeVariaveisNaturais+1;
 		int posicaoDaArtificial = numeroDeColunasTableau - variaveisArtificiais;
 		
+		//preenchimento do tableau com as variaveis de folga e artificiais
 		for(int i = 0; i < quantidadeRestricoes; i++) {
 			if(restricoes[i][quantidadeVariaveisNaturais].equals("<=")) {
 				tableauPrimeiraFase[i+2][posicaoDaFolga++] = (float) 1;
@@ -172,6 +181,7 @@ public class Main
 				tableauPrimeiraFase[i+2][posicaoDaArtificial++] = (float) 1;
 			}
 		}
+		//chamada da primeira fase após a montagem do tableau
 		primeiraFase();
 	}
 	
@@ -199,34 +209,39 @@ public class Main
 				tableauSegundaFase[0][i+1] = funcaoObjetivo[i]*(-1);
 		}
 				
-		// Insere as restrições no tableau
+		// preenchimento do tableau com as restrições
 		for(int i = 1; i < numeroDeLinhasTableau; i++) {
 			for(int j = 1; j < numeroDeColunasTableau; j++) {
 				if(j < quantidadeVariaveisNaturais)
 					tableauSegundaFase[i][j] = Float.valueOf(restricoes[i-1][j-1]);
-				else
-					tableauSegundaFase[i][j] = (float) 0;
 			}	
 		}
 		
+		//preenche o tableau com os valores que estão na coluna da ultima variavel natural(de novo não me pergunte o porquê)
+		//preenche o tableau com os valores das variaveis da base na primeira coluna
 		for(int i = 0; i < quantidadeRestricoes; i++) {
 			tableauSegundaFase[i+1][quantidadeVariaveisNaturais] = Float.valueOf(restricoes[i][quantidadeVariaveisNaturais-1]);
 			tableauSegundaFase[i+1][0] = Float.valueOf(restricoes[i][quantidadeVariaveisNaturais+1]);
 		}
 		
-		int posicaoDaFolga = quantidadeVariaveisNaturais+1;
-		int posicaoDaArtificial = numeroDeColunasTableau - variaveisArtificiais;
 		
+		int posicaoDaFolga = quantidadeVariaveisNaturais+1;
+		//int posicaoDaArtificial = numeroDeColunasTableau - variaveisArtificiais;
+		
+		
+		//preenchimento do tableau com as variaveis de folga
+		//eu reparei q eu tava tratando das artificiais na função que se chama tableau"""SEM"""artificiais ¯\_(ツ)_/¯
 		for(int i = 0; i < quantidadeRestricoes; i++) {
-			if(restricoes[i][quantidadeVariaveisNaturais].equals("<=")) {
+			//if(restricoes[i][quantidadeVariaveisNaturais].equals("<=")) {
 				tableauSegundaFase[i+1][posicaoDaFolga++] = (float) 1;
-			}else if(restricoes[i][quantidadeVariaveisNaturais].equals(">=")) {
+				/*}else if(restricoes[i][quantidadeVariaveisNaturais].equals(">=")) {
 				tableauSegundaFase[i+1][posicaoDaFolga++] = (float) 1;
 				tableauSegundaFase[i+1][posicaoDaArtificial++] = (float) 1;
 			}else if(restricoes[i][quantidadeVariaveisNaturais].equals("=")) {
 				tableauSegundaFase[i+1][posicaoDaArtificial++] = (float) 1;
 			}
-		}
+	*/	}
+		
 		segundaFase();
 	}
 	
@@ -234,19 +249,23 @@ public class Main
 	 * Executa a primeira fase do algoritmo
 	 */
 	private static void primeiraFase() {
+		//for que soma as linhas onde existem variaveis artificiais a linha da função artificial
 		for(int i = 0; i < posicaoDaArtificial.size(); i++) {
 			for(int j = 0; j < numeroDeColunasTableau; j++) {
 				tableauPrimeiraFase[0][j] += tableauPrimeiraFase[posicaoDaArtificial.get(i)+2][j];
 			} 
 		}
-		boolean funcaoArtificialNula = false;
-		int numeroMaximoDeIteracoes = 10;
+		//variavel que só se torna verdadeira quando todas as colunas da primeira linha se tornam inferiores a zero
+		boolean primeiraLinhaComValoresPositivos = false;
 		
-		while(!funcaoArtificialNula && numeroMaximoDeIteracoes != 0) {
+		//loop que só se encerra quando todas as colunas da primeira linha se tornam inferiores a zero
+		while(!primeiraLinhaComValoresPositivos) {
 			float maximo = 0;
 			float minimo = Float.MAX_VALUE;
 			int posicaoDoMaximo = 0;
 			int posicaoDoMinimo = 0;
+			//for para identificação da candidata que deve entrar, seu valor e sua posição
+			//desempate é menor índice
 			for(int i = 1; i < numeroDeColunasTableau; i++) {
 				if(tableauPrimeiraFase[0][i]>maximo) {
 					maximo = tableauPrimeiraFase[0][i];
@@ -254,6 +273,8 @@ public class Main
 				}
 			}
 			
+			//for para identificação da variavel que vai sair da base com o valor do quociente de menor valor e sua posição
+			//desempate é menor índice
 			for(int i = 2; i <numeroDeLinhasTableau; i++) {
 				if(tableauPrimeiraFase[i][posicaoDoMaximo] > 0 && tableauPrimeiraFase[i][0]/tableauPrimeiraFase[i][posicaoDoMaximo] < minimo) {
 					minimo = tableauPrimeiraFase[i][0]/tableauPrimeiraFase[i][posicaoDoMaximo];
@@ -261,12 +282,14 @@ public class Main
 				}
 			}
 			
+			//for para tornar o pivô em '1' dividindo toda a linha pelo pivô se necessario
 			for(int i = 0; i < numeroDeColunasTableau; i++) {
 				if(tableauPrimeiraFase[posicaoDoMinimo][posicaoDoMaximo] != 1) {
 					tableauPrimeiraFase[posicaoDoMinimo][i] /= tableauPrimeiraFase[posicaoDoMinimo][posicaoDoMaximo];
 				}
 			}
 			
+			//for para zerar a coluna do pivô acima do pivô se já não for '0'
 			for(int i = 0; i < posicaoDoMinimo; i++) {
 				if(tableauPrimeiraFase[i][posicaoDoMaximo] != 0) {
 					float multiplicadorDaLinhaParaZerarAColunaDaVariavelQueVaiEntrarNaBase = tableauPrimeiraFase[i][posicaoDoMaximo]/tableauPrimeiraFase[posicaoDoMinimo][posicaoDoMaximo];
@@ -276,6 +299,7 @@ public class Main
 				}
 			}
 			
+			//for para zerar a coluna do pivô abaixo do pivô se já não for '0'
 			for(int i = posicaoDoMinimo+1; i < numeroDeLinhasTableau; i++) {
 				if(tableauPrimeiraFase[i][posicaoDoMaximo] != 0) {
 					float multiplicadorDaLinhaParaZerarAColunaDaVariavelQueVaiEntrarNaBase = tableauPrimeiraFase[i][posicaoDoMaximo]/tableauPrimeiraFase[posicaoDoMinimo][posicaoDoMaximo];
@@ -287,6 +311,7 @@ public class Main
 			}
 			
 			float maiorValorDaPrimeiraLinha = 0;
+			//for para verificar qual o maior valor na primeira linha
 			for(int i = 0; i < numeroDeColunasTableau; i++) {
 				
 				if(tableauPrimeiraFase[0][i] > maiorValorDaPrimeiraLinha) {
@@ -294,26 +319,30 @@ public class Main
 				}
 			}
 			
+			//se o maior valor for maior que '0' a primeira linha não esta nula e mais uma iteração será necessária
 			if(maiorValorDaPrimeiraLinha > 0) {
-				funcaoArtificialNula = false;
+				primeiraLinhaComValoresPositivos = false;
+			//caso contrario o a primeira fase se encerra e não ocorrerá mais uma iteração
 			}else {
-				funcaoArtificialNula = true;
+				primeiraLinhaComValoresPositivos = true;
 			}
-			numeroMaximoDeIteracoes--;
 		}
 		tableauSegundaFase = new Float[numeroDeLinhasTableau-1][numeroDeColunasTableau-variaveisArtificiais];
 		
-		if(numeroMaximoDeIteracoes == 0) {
+		//caso a função artificial não tenha sido zerada temos que o conjunto solução é vazio
+		if(tableauPrimeiraFase[0][0] != 0) {
 			resultadoFinal = RESULTADO_SEM_SOLUCAO_CONJUNTO_VAZIO;
+		//caso contrario trascrevemos o tableauprimeirafase no tableausegundafase sem a linha da função artificial e as colunas das variaveis artificiais
 		}else {
 			for(int i = 0; i < numeroDeLinhasTableau-1; i++) {
 				for(int j = 0; j < numeroDeColunasTableau-variaveisArtificiais; j++) {
 					tableauSegundaFase[i][j] = tableauPrimeiraFase[i+1][j];
 				}
 			}
-			
+			//além de adequar o numero de linhas e colunas do tableau
 			numeroDeLinhasTableau = numeroDeLinhasTableau-1;
 			numeroDeColunasTableau = numeroDeColunasTableau-variaveisArtificiais;
+			//e chamar a segunda fase
 			segundaFase();
 		}
 	}	
