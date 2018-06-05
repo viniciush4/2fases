@@ -1,0 +1,9 @@
+min
+2 2
+3 4
+1 1 <= 4
+2 3 >= 12
+
+SOLUÇÃO:
+z*=16 x*=(0 4 0 0)
+única e degenerada

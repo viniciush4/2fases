@@ -1,0 +1,15 @@
+max
+3 2
+1 1
+2 3 = 5
+-6 -9 = -15
+1 1 >= 0
+
+SOLUÇÃO:
+z*=2.5 x*=(2.5 0 0 0 2.5)
+múltipla e degenerada
+
+SOLUÇÃO PHP SIMPLEX:
+A solução ótima é Z = 2.5
+X1 = 2.5
+X2 = 0
