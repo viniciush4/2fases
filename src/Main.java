@@ -51,6 +51,8 @@ public class Main
 			{
 				atualizarTableau(); 
 				imprimirTableau(); 
+				retirarVariaveisArtificiaisDaBase();
+				imprimirTableau();
 				segundaFase(); 
 			}
 		} 
@@ -59,7 +61,7 @@ public class Main
 			segundaFase(); 
 			imprimirTableau();
 		}
-		if(resultadoFinal == RESULTADO_SOLUCAO_UNICA || resultadoFinal == RESULTADO_SOLUCAO_MULTIPLA) 
+		if((resultadoFinal == RESULTADO_SOLUCAO_UNICA || resultadoFinal == RESULTADO_SOLUCAO_MULTIPLA) && solucaoDegenerada == false)
 		{ 
 			verificarSeSolucaoDegenerada(); 
 		}
@@ -321,19 +323,110 @@ public class Main
 			}
 			else
 			{
-				resultadoFinal = RESULTADO_SEM_SOLUCAO_VAI_PARA_INFINITO;
 				break;
 			}
 		}
 		
-		if(tableau[0][0] != 0 && resultadoFinal != RESULTADO_SEM_SOLUCAO_VAI_PARA_INFINITO) {resultadoFinal = RESULTADO_SEM_SOLUCAO_CONJUNTO_VAZIO;}
+		if(tableau[0][0] != 0) {resultadoFinal = RESULTADO_SEM_SOLUCAO_CONJUNTO_VAZIO; return;}
+	}
+	
+	/*
+	 * Retira as variáveis artificiais da base, caso existam
+	 */
+	private static void retirarVariaveisArtificiaisDaBase()
+	{
+		List<Integer> indicesDasLinhasAseremRemovidas = new ArrayList<>();
+		
+		// Percorre as variaveis artificiais
+		for(int i=0; i<indicesDasVariaveisArtificais.length; i++)
+		{
+			// Percorre as variaveis basicas
+			for(int j=0; j<indicesDasVariaveisBasicas.length; j++)
+			{
+				// Se a variável artificial é básica
+				if(indicesDasVariaveisArtificais[i] == indicesDasVariaveisBasicas[j])
+				{
+					solucaoDegenerada = true;
+					
+					int indiceLinhaPivo = j+1;
+					int indiceColunaPivo = -1;
+					
+					// Escolhe uma coluna pivo
+					for(int k=1; k<numeroDeColunasTableau; k++)
+					{
+						for(int l=0; l<indicesDasVariaveisBasicas.length; l++)
+						{
+							if(k != indicesDasVariaveisBasicas[l] && tableau[indiceLinhaPivo][k] != 0)
+							{
+								indiceColunaPivo = k;
+								break;
+							}
+						}
+						if(indiceColunaPivo>0) {break;}
+					}
+					
+					// Se foi encontrada uma coluna pivo
+					if(indiceColunaPivo > 0)
+					{
+						// Escalona o tableau
+						escalonarTableau(indiceColunaPivo, indiceLinhaPivo);
+						
+						// Coloca o indice da coluna escolhida no vetor de índices das variaveis básicas
+						indicesDasVariaveisBasicas[indiceLinhaPivo-1] = indiceColunaPivo;
+					}
+					else
+					{
+						indicesDasLinhasAseremRemovidas.add(j);
+					}
+				}
+			}
+		}
+		
+		// Retira da base
+		int[] novoVetorIndicesDasVariaveisBasicas = new int[indicesDasVariaveisBasicas.length - indicesDasLinhasAseremRemovidas.size()];
+		int posicao = 0;
+		for(int i=0; i<indicesDasVariaveisBasicas.length; i++)
+		{
+			if(!indicesDasLinhasAseremRemovidas.contains(i))
+			{
+				novoVetorIndicesDasVariaveisBasicas[posicao] = indicesDasVariaveisBasicas[i];
+				posicao++;
+			}
+		}
+		indicesDasVariaveisBasicas = novoVetorIndicesDasVariaveisBasicas;
+		
+		// Remove as linhas
+		for(int indice : indicesDasLinhasAseremRemovidas)
+		{
+		      removerLinhaTableau(indice+1);
+		}
+	}
+	
+	
+	private static void removerLinhaTableau(int indiceLinha)
+	{
+		// Cria uma nova instância do tableau
+		Float[][] tableauNovo = new Float[numeroDeLinhasTableau-1][numeroDeColunasTableau];
+		int posicao=0;
+		
+		for(int i = 0; i < numeroDeLinhasTableau; i++) 
+		{
+			for(int j = 0; j < numeroDeColunasTableau; j++) 
+			{
+				if(i!=indiceLinha) { tableauNovo[posicao][j] = tableau[i][j]; }
+			}
+			if(i!=indiceLinha) {posicao++;}
+		}
+		tableau = tableauNovo;
+		numeroDeLinhasTableau--;
+		
 	}
 	
 	/*
 	 * Realiza a segunda fase do algoritmo
 	 */
 	private static void segundaFase() 
-	{
+	{	
 		// Encontra os indices referentes ao pivo
 		int indiceColunaPivo = encontrarIndiceColunaPivo();
 		int indiceLinhaPivo = encontrarIndiceLinhaPivo(indiceColunaPivo, 0);
@@ -476,7 +569,7 @@ public class Main
 				tableau[i][0] >= 0 && 
 				
 				// a divisão entre eles for menor que o mínimo já encontrado
-				tableau[i][0]/tableau[i][indiceColunaPivo] <= min
+				tableau[i][0]/tableau[i][indiceColunaPivo] < min
 			)
 			{
 				// Atualiza o mínimo e o indice
@@ -626,10 +719,12 @@ public class Main
 	private static void imprimirVetorSolucoes()
 	{
 		float[] vetorSolucoes = new float[numeroDeColunasTableau-1];
+		int posicao = 1;
 		
 		for(int i=0; i<indicesDasVariaveisBasicas.length; i++) 
 		{
-			vetorSolucoes[indicesDasVariaveisBasicas[i]-1] = tableau[i+1][0];
+			vetorSolucoes[indicesDasVariaveisBasicas[i]-1] = tableau[posicao][0];
+			posicao++;
 		}
 		
 		System.out.print("( ");
@@ -670,12 +765,12 @@ public class Main
 			case RESULTADO_SOLUCAO_MULTIPLA : 
 				System.out.print("z*="); imprimirValorFuncaoObjetivo();
 				System.out.print("x*="); imprimirVetorSolucoes();
-				System.out.print("Multipla"); 
+				System.out.print("Múltipla"); 
 				if(solucaoDegenerada) { System.out.println(" e Degenerada"); } else { System.out.println();}
 				break;
 				
 			case RESULTADO_SEM_SOLUCAO_CONJUNTO_VAZIO : 
-				System.out.println("Conjunto de soluções viáveis vazio"); 
+				System.out.println("Conjunto vazio"); 
 				break;
 				
 			case RESULTADO_SEM_SOLUCAO_VAI_PARA_INFINITO :
@@ -684,3 +779,4 @@ public class Main
 		}
 	}
 }
+
