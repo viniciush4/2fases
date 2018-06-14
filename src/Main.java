@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Scanner;
@@ -6,6 +7,24 @@ import java.util.Scanner;
 
 public class Main 
 {
+	/*
+	 * Cores usadas para printar
+	 */
+	static final String ANSI_RESET = "\u001B[0m";
+	static final String ANSI_VERMELHO = "\u001B[31m";
+	static final String ANSI_VERDE = "\u001B[32m";
+	static final String ANSI_AMARELO = "\u001B[33m";
+	static final String ANSI_AZUL = "\u001B[34m";
+	static final String ANSI_BRANCO = "\u001B[37m";
+	static final String ANSI_BLACK_BACKGROUND = "\u001B[40m";
+	static final String ANSI_RED_BACKGROUND = "\u001B[41m";
+	static final String ANSI_GREEN_BACKGROUND = "\u001B[42m";
+	static final String ANSI_YELLOW_BACKGROUND = "\u001B[43m";
+	static final String ANSI_BLUE_BACKGROUND = "\u001B[44m";
+	static final String ANSI_PURPLE_BACKGROUND = "\u001B[45m";
+	static final String ANSI_CYAN_BACKGROUND = "\u001B[46m";
+	static final String ANSI_WHITE_BACKGROUND = "\u001B[47m";
+			
 	/*
 	 * Constantes
 	 */
@@ -43,27 +62,28 @@ public class Main
 		imprimirEntradas();
 		analisarEntradas();
 		criarTableau();
-		imprimirTableau();
 		if(variaveisArtificiais != 0) 
 		{
+			imprimirTableau("PRIMEIRO TABLEAU", -1, -1, 1);
+			minimizarFuncaoArtificial();
 			primeiraFase();
 			if(resultadoFinal != RESULTADO_SEM_SOLUCAO_CONJUNTO_VAZIO) 
 			{
-				atualizarTableau(); 
-				imprimirTableau(); 
+				atualizarTableau();
 				retirarVariaveisArtificiaisDaBase();
-				imprimirTableau();
+				imprimirTableau("", -1, -1, 2);
 				segundaFase(); 
 			}
 		} 
 		else 
 		{
+			imprimirTableau("PRIMEIRO TABLEAU", -1, -1, 2);
 			segundaFase(); 
-			imprimirTableau();
+			imprimirTableau("", -1, -1, 2);
 		}
 		if((resultadoFinal == RESULTADO_SOLUCAO_UNICA || resultadoFinal == RESULTADO_SOLUCAO_MULTIPLA) && solucaoDegenerada == false)
 		{ 
-			verificarSeSolucaoDegenerada(); 
+			verificarSeSolucaoDegenerada();
 		}
 		imprimirResultadoFinal();
 	}
@@ -105,6 +125,7 @@ public class Main
 	 */
 	private static void imprimirEntradas()
 	{
+		System.out.println("\n\n\n================================ ENTRADAS ================================\n\n\n");
 		System.out.println("Tipo do problema: "+tipoProblema);
 		System.out.println("Quantidade de Restrições: "+quantidadeRestricoes);
 		System.out.println("Quantidade de Variáveis Naturais: "+quantidadeVariaveisNaturais);
@@ -266,7 +287,87 @@ public class Main
 	 */
 	private static void primeiraFase()
 	{
-		// Soma as linhas das variáveis artificiais à linha da função objetivo
+		// Encontra os indices referentes ao pivo
+		int indiceColunaPivo = encontrarIndiceColunaPivo();
+		int indiceLinhaPivo = encontrarIndiceLinhaPivo(indiceColunaPivo, 1);
+		
+		imprimirTableau("PRIMEIRA FASE", indiceLinhaPivo, indiceColunaPivo, 1);
+
+		// Enquanto existir uma coluna pivo
+		while(indiceColunaPivo != -1)
+		{
+			// Se existir uma linha pivo
+			if(indiceLinhaPivo != -1)
+			{
+				// Coloca o indice da coluna escolhida no vetor de índices das variaveis básicas
+				indicesDasVariaveisBasicas[indiceLinhaPivo-2] = indiceColunaPivo;
+				
+				// Escalona o tableau
+				escalonarTableau(indiceColunaPivo, indiceLinhaPivo);
+				
+				// Atualiza indices referentes ao pivo
+				indiceColunaPivo = encontrarIndiceColunaPivo();
+				indiceLinhaPivo = encontrarIndiceLinhaPivo(indiceColunaPivo, 1);
+
+				imprimirTableau("", indiceLinhaPivo, indiceColunaPivo, 1);
+			}
+			else
+			{
+				break;
+			}
+		}
+		
+		if(tableau[0][0] != 0) {resultadoFinal = RESULTADO_SEM_SOLUCAO_CONJUNTO_VAZIO; return;}
+	}
+	
+	/*
+	 * Realiza a segunda fase do algoritmo
+	 */
+	private static void segundaFase() 
+	{
+		// Encontra os indices referentes ao pivo
+		int indiceColunaPivo = encontrarIndiceColunaPivo();
+		int indiceLinhaPivo = encontrarIndiceLinhaPivo(indiceColunaPivo, 0);
+		
+		imprimirTableau("SEGUNDA FASE", indiceLinhaPivo, indiceColunaPivo, 2);
+
+		// Enquanto existir uma coluna pivo
+		while(indiceColunaPivo != -1)
+		{
+			// Se existir uma linha pivo
+			if(indiceLinhaPivo != -1)
+			{
+				// Coloca o indice da coluna escolhida no vetor de índices das variaveis básicas
+				indicesDasVariaveisBasicas[indiceLinhaPivo-1] = indiceColunaPivo;
+				
+				// Escalona o tableau
+				escalonarTableau(indiceColunaPivo, indiceLinhaPivo);
+				
+				// Atualiza indices referentes ao pivo
+				indiceColunaPivo = encontrarIndiceColunaPivo();
+				indiceLinhaPivo = encontrarIndiceLinhaPivo(indiceColunaPivo, 0);
+				
+				imprimirTableau("", indiceLinhaPivo, indiceColunaPivo, 2);
+			}
+			else
+			{
+				resultadoFinal = RESULTADO_SEM_SOLUCAO_VAI_PARA_INFINITO;
+				return;
+			}
+		}
+		
+		if(verificarSePossuiMultiplasSolucoes()) 
+		{
+			resultadoFinal = RESULTADO_SOLUCAO_MULTIPLA;
+		}
+		return;
+	}
+	
+	/*
+	 * Soma as linhas das variáveis artificiais à linha da função objetivo
+	 */
+	private static void minimizarFuncaoArtificial()
+	{
 		for(int k=0; k<indicesDasVariaveisArtificais.length; k++)
 		{
 			for(int i=2; i<numeroDeLinhasTableau; i++)
@@ -280,54 +381,6 @@ public class Main
 				}
 			}
 		}
-		
-		imprimirTableau();
-		
-		// Encontra os indices referentes ao pivo
-		int indiceColunaPivo = encontrarIndiceColunaPivo();
-		int indiceLinhaPivo = encontrarIndiceLinhaPivo(indiceColunaPivo, 1);
-		
-		// Imprime a linha e coluna do pivo
-		System.out.printf("Índice Coluna Escolhida: %d\n",indiceColunaPivo);
-		System.out.printf("Índice Linha Escolhida: %d\n",indiceLinhaPivo);
-
-		// Imprime os indices das variaveis básicas
-		imprimirVetorIndicesVariaveisBasicas();
-		imprimirVetorIndicesVariaveisArtificiais();
-		
-		// Enquanto existir uma coluna pivo
-		while(indiceColunaPivo != -1)
-		{
-			// Se existir uma linha pivo
-			if(indiceLinhaPivo != -1)
-			{
-				// Coloca o indice da coluna escolhida no vetor de índices das variaveis básicas
-				indicesDasVariaveisBasicas[indiceLinhaPivo-2] = indiceColunaPivo;
-				
-				// Escalona o tableau
-				escalonarTableau(indiceColunaPivo, indiceLinhaPivo);
-				
-				imprimirTableau();
-
-				// Atualiza indices referentes ao pivo
-				indiceColunaPivo = encontrarIndiceColunaPivo();
-				indiceLinhaPivo = encontrarIndiceLinhaPivo(indiceColunaPivo, 1);
-				
-				// Imprime a linha e coluna do pivo
-				System.out.printf("Índice Coluna Escolhida: %d\n",indiceColunaPivo);
-				System.out.printf("Índice Linha Escolhida: %d\n",indiceLinhaPivo);
-				
-				// Imprime os indices das variaveis básicas
-				imprimirVetorIndicesVariaveisBasicas();
-				imprimirVetorIndicesVariaveisArtificiais();
-			}
-			else
-			{
-				break;
-			}
-		}
-		
-		if(tableau[0][0] != 0) {resultadoFinal = RESULTADO_SEM_SOLUCAO_CONJUNTO_VAZIO; return;}
 	}
 	
 	/*
@@ -402,7 +455,9 @@ public class Main
 		}
 	}
 	
-	
+	/*
+	 * Remove uma linha do tableau
+	 */
 	private static void removerLinhaTableau(int indiceLinha)
 	{
 		// Cria uma nova instância do tableau
@@ -420,61 +475,6 @@ public class Main
 		tableau = tableauNovo;
 		numeroDeLinhasTableau--;
 		
-	}
-	
-	/*
-	 * Realiza a segunda fase do algoritmo
-	 */
-	private static void segundaFase() 
-	{	
-		// Encontra os indices referentes ao pivo
-		int indiceColunaPivo = encontrarIndiceColunaPivo();
-		int indiceLinhaPivo = encontrarIndiceLinhaPivo(indiceColunaPivo, 0);
-		
-		// Imprime a linha e coluna do pivo
-		System.out.printf("Índice Coluna Escolhida: %d\n",indiceColunaPivo);
-		System.out.printf("Índice Linha Escolhida: %d\n",indiceLinhaPivo);
-
-		// Imprime os indices das variaveis básicas
-		imprimirVetorIndicesVariaveisBasicas();
-		
-		// Enquanto existir uma coluna pivo
-		while(indiceColunaPivo != -1)
-		{
-			// Se existir uma linha pivo
-			if(indiceLinhaPivo != -1)
-			{
-				// Coloca o indice da coluna escolhida no vetor de índices das variaveis básicas
-				indicesDasVariaveisBasicas[indiceLinhaPivo-1] = indiceColunaPivo;
-				
-				// Escalona o tableau
-				escalonarTableau(indiceColunaPivo, indiceLinhaPivo);
-				
-				imprimirTableau();
-
-				// Atualiza indices referentes ao pivo
-				indiceColunaPivo = encontrarIndiceColunaPivo();
-				indiceLinhaPivo = encontrarIndiceLinhaPivo(indiceColunaPivo, 0);
-				
-				// Imprime a linha e coluna do pivo
-				System.out.printf("Índice Coluna Escolhida: %d\n",indiceColunaPivo);
-				System.out.printf("Índice Linha Escolhida: %d\n",indiceLinhaPivo);
-				
-				// Imprime os indices das variaveis básicas
-				imprimirVetorIndicesVariaveisBasicas();
-			}
-			else
-			{
-				resultadoFinal = RESULTADO_SEM_SOLUCAO_VAI_PARA_INFINITO;
-				return;
-			}
-		}
-		
-		if(verificarSePossuiMultiplasSolucoes()) 
-		{
-			resultadoFinal = RESULTADO_SOLUCAO_MULTIPLA;
-		}
-		return;
 	}
 	
 	/*
@@ -510,8 +510,7 @@ public class Main
 	}
 	
 	/*
-	 * Percorre o vetor b (resultados) e verifica se alguma variavel
-	 * básica é nula.
+	 * Percorre o vetor b (resultados) e verifica se alguma variavel básica é nula.
 	 */
 	private static void verificarSeSolucaoDegenerada() 
 	{
@@ -672,14 +671,60 @@ public class Main
 	/*
 	 * Imprime o tableau na saída padrão
 	 */
-	private static void imprimirTableau()
-	{
-		System.out.println("\n\n\n");
+	private static void imprimirTableau(String titulo, int indiceLinha, int indiceColuna, int fase)
+	{	
+		// Imprime o título
+		System.out.println((titulo != "") ? "\n\n\n================================ "+titulo+" ================================\n\n\n" : "\n\n\n");
+		
+		// Imprime indicativo de variáveis artificiais
+		Arrays.sort(indicesDasVariaveisArtificais);
+		System.out.print("\t");
+		int cont = 0;
+		for(int j=0; j<tableau[0].length && cont<indicesDasVariaveisArtificais.length; j++) {
+			if(j == indicesDasVariaveisArtificais[cont]) {
+				System.out.print(ANSI_PURPLE_BACKGROUND+ANSI_BRANCO+"ART"+ANSI_RESET+"\t");
+				cont++;
+			} else {
+				System.out.print("\t");
+			}
+		}
+		System.out.println();
+		
+		// Imprime nome das variáveis
+		for(int j=0; j<=tableau[0].length; j++) {
+			if(j>1) {
+				System.out.print(ANSI_BLUE_BACKGROUND+ANSI_BRANCO+"x"+(j-1)+ANSI_RESET+"\t");
+			} else {
+				System.out.print("\t");
+			}
+		}
+		System.out.println();
+		
+		// Imprime o tableau
+		int count = 0;
 		for(int i = 0; i < tableau.length; i++) 
 		{
+			// Imprime a primeira coluna
+			if(fase == 1) {
+				if(i==0) { System.out.print(ANSI_GREEN_BACKGROUND+ANSI_BRANCO+"za*"+ANSI_RESET+"\t"); }
+				if(i==1) { System.out.print(ANSI_GREEN_BACKGROUND+ANSI_BRANCO+"z*"+ANSI_RESET+"\t"); }
+				if(i>1) {
+					System.out.print(ANSI_BLUE_BACKGROUND+ANSI_BRANCO+"x"+indicesDasVariaveisBasicas[count]+ANSI_RESET+"\t");
+					count++;
+				}
+			}
+			if(fase == 2) {
+				if(i==0) { System.out.print(ANSI_GREEN_BACKGROUND+ANSI_BRANCO+"z*"+ANSI_RESET+"\t"); }
+				if(i>0) {
+					System.out.print(ANSI_BLUE_BACKGROUND+ANSI_BRANCO+"x"+indicesDasVariaveisBasicas[count]+ANSI_RESET+"\t");
+					count++;
+				}
+			}
+			
+			// Imprime demais colunas
 			for(int j = 0; j < tableau[0].length; j++) 
 			{
-				System.out.print(String.format("%.3f", tableau[i][j])+"\t");
+				System.out.print((i == indiceLinha && j == indiceColuna) ? ANSI_YELLOW_BACKGROUND+ANSI_VERMELHO+String.format("%.3f", tableau[i][j])+ANSI_RESET+"\t" : String.format("%.3f", tableau[i][j])+"\t");
 			}
 			System.out.println();
 		}
@@ -723,7 +768,7 @@ public class Main
 		
 		for(int i=0; i<indicesDasVariaveisBasicas.length; i++) 
 		{
-			vetorSolucoes[indicesDasVariaveisBasicas[i]-1] = tableau[posicao][0];
+			vetorSolucoes[indicesDasVariaveisBasicas[i]-1] = tableau[posicao][0]+0;
 			posicao++;
 		}
 		
@@ -731,7 +776,7 @@ public class Main
 		
 		for(int i=0; i<vetorSolucoes.length; i++) 
 		{
-			System.out.print(vetorSolucoes[i]+" ");
+			System.out.print(String.format("%.3f", vetorSolucoes[i])+" ");
 		}
 		System.out.println(")");
 	}
@@ -743,7 +788,7 @@ public class Main
 	{
 		float z = (tipoProblema.equals("max")) ? tableau[0][0]*(-1) : tableau[0][0];
 		
-		System.out.println(z);
+		System.out.println(String.format("%.3f", z));
 	}
 	
 	/*
@@ -751,20 +796,20 @@ public class Main
 	 */ 
 	private static void imprimirResultadoFinal()
 	{
-		System.out.println();
+		System.out.println("\n\n\n================================ RESULTADO ================================\n\n\n");
 		
 		switch(resultadoFinal) 
 		{
 			case RESULTADO_SOLUCAO_UNICA : 
-				System.out.print("z*="); imprimirValorFuncaoObjetivo();
-				System.out.print("x*="); imprimirVetorSolucoes();
+				System.out.print(ANSI_GREEN_BACKGROUND+ANSI_BRANCO+"z*"+ANSI_RESET+"="); imprimirValorFuncaoObjetivo();
+				System.out.print(ANSI_BLUE_BACKGROUND+ANSI_BRANCO+"x*"+ANSI_RESET+"="); imprimirVetorSolucoes();
 				System.out.print("Única");
 				if(solucaoDegenerada) { System.out.println(" e Degenerada"); } else { System.out.println();}
 				break;
 				
 			case RESULTADO_SOLUCAO_MULTIPLA : 
-				System.out.print("z*="); imprimirValorFuncaoObjetivo();
-				System.out.print("x*="); imprimirVetorSolucoes();
+				System.out.print(ANSI_GREEN_BACKGROUND+ANSI_BRANCO+"z*"+ANSI_RESET+"="); imprimirValorFuncaoObjetivo();
+				System.out.print(ANSI_BLUE_BACKGROUND+ANSI_BRANCO+"x*"+ANSI_RESET+"="); imprimirVetorSolucoes();
 				System.out.print("Múltipla"); 
 				if(solucaoDegenerada) { System.out.println(" e Degenerada"); } else { System.out.println();}
 				break;
@@ -777,6 +822,7 @@ public class Main
 				if(tipoProblema.equals("max")) { System.out.println("z* -> +infinito"); } else { System.out.println("z* -> -infinito"); }
 				break;
 		}
+		System.out.println("\n\n\n");
 	}
 }
 
